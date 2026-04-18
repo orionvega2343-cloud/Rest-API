@@ -18,7 +18,7 @@ func NewHandler(db *sql.DB) *Handler {
 	return &Handler{DB: db}
 }
 
-func (h Handler) HandlePosts(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandlePosts(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		h.handleGet(w, r)
@@ -107,9 +107,10 @@ func (h *Handler) handleDelete(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
 		}
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *Handler) HandlePost(w http.ResponseWriter, r *http.Request) {
@@ -133,10 +134,11 @@ func (h *Handler) HandlePost(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
 		}
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(p)
-
 }

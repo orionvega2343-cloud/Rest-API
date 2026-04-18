@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func (h Handler) CommentHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) CommentHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		h.getComments(w, r)

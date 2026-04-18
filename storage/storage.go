@@ -11,30 +11,24 @@ import (
 var ErrNotFound = errors.New("not found")
 
 func NewDB(connStr string) (*sql.DB, error) {
-	db, err := sql.Open("postgres", connStr) //Создаем бд
-
+	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, err
 	}
-
-	err = db.Ping() //Запускаем бд
-	if err != nil {
+	if err = db.Ping(); err != nil {
 		return nil, err
 	}
 	return db, nil
 }
 
-func CreateTable(db *sql.DB) error { //Создаем таблицу
+func CreateTable(db *sql.DB) error {
 	_, err := db.Exec(`CREATE TABLE IF NOT EXISTS posts (
-    					id SERIAL PRIMARY KEY, 
-						title TEXT NOT NULL,
-						text TEXT NOT NULL,
-						author TEXT NOT NULL,
-						date TEXT NOT NULL)`)
-	if err != nil {
-		return err
-	}
-	return nil
+		id SERIAL PRIMARY KEY,
+		title TEXT NOT NULL,
+		text TEXT NOT NULL,
+		author TEXT NOT NULL,
+		date TEXT NOT NULL)`)
+	return err
 }
 
 func GetAll(db *sql.DB) ([]models.Post, error) {
@@ -46,9 +40,10 @@ func GetAll(db *sql.DB) ([]models.Post, error) {
 	var posts []models.Post
 	for rows.Next() {
 		var p models.Post
-		rows.Scan(&p.ID, &p.Title, &p.Text, &p.Author, &p.Date)
+		if err = rows.Scan(&p.ID, &p.Title, &p.Text, &p.Author, &p.Date); err != nil {
+			return nil, err
+		}
 		posts = append(posts, p)
-
 	}
 
 	return posts, nil
@@ -107,7 +102,7 @@ func GetByID(db *sql.DB, id int) (models.Post, error) {
 		"SELECT id, title, text, author, date FROM posts WHERE id = $1", id,
 	).Scan(&p.ID, &p.Title, &p.Text, &p.Author, &p.Date)
 
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return models.Post{}, ErrNotFound
 	}
 	if err != nil {
